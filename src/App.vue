@@ -6,66 +6,88 @@
 					<i class="bi bi-clipboard-check text-secondary"></i>
 					GoNote
 				</h3>
-				<button type="button" class="btn btn-dark w-100 py-2 rounded-0" v-on:click="showAddForm()">
+				<button type="button" class="btn btn-dark w-100 py-2 rounded-0" v-on:click="onAddForm()">
 					<i class="bi bi-pen-fill"></i>
 					Stwórz nową notatkę
 				</button>
-				<div v-if="notes.length == 0" class="alert alert-secondary m-3 text-center">
-					<i class="bi bi-emoji-frown"></i>
-					Jeszcze nie ma żadnych notatek do wyświetlenia
-				</div>
-				<notes-list v-else v-bind:notes="notes" v-on:onShowNote="showNote($event)" v-on:onDeleteNote="deleteNote($event)"></notes-list>
+				<notes-list v-bind:notes="notes" v-on:onShowNote="showNote($event)" v-on:onDeleteNote="deleteNote($event)"></notes-list>
 			</div>
 			<div class="col-12 col-md-7 col-lg-8 bg-white p-0">
-				<div class="cover d-none d-sm-block"></div>
-				<note-add-form v-if="currentNote == null" v-on:onAddNote="addNote($event)"></note-add-form>
-				<note v-else v-bind:note="currentNote"></note>
+				<div class="cover"></div>
+				<div class="p-5 h-50">
+					<note v-if="currentNote !== null" v-on:onDeleteNote="deleteNote($event)" v-bind:note="currentNote"></note>
+					<note-add-form v-else-if="showAddForm" v-on:onAddNote="addNote($event)"></note-add-form>
+					<div v-else class="alert alert-secondary rounded-5" role="alert">
+						Brak aktywnej notatki
+					</div>				
+				</div>
 			</div>
 		</div>
+		<nav class="navbar fixed-bottom navbar-dark bg-dark">
+			<div class="container-fluid justify-content-end p-2">
+				<span class="text-muted mx-5 d-none d-md-block">
+					©2021 Polityka prywatności | Warunki korzystania z usługi
+				</span>
+				<span class="text-light">
+					<i class="bi bi-heart-fill"></i>
+					Moje konto
+				</span>
+			</div>
+		</nav>
 	</div>
-	<nav class="navbar fixed-bottom navbar-dark bg-dark">
-		<div class="container-fluid justify-content-end p-2">
-			<span class="text-muted mx-5 d-none d-md-block">
-				©2021 Polityka prywatności | Warunki korzystania z usługi
-			</span>
-			<span class="text-light">
-				<i class="bi bi-heart-fill"></i>
-				Moje konto
-			</span>
-		</div>
-	</nav>
 </template>
 
 <script>
-	import NoteAddForm from "./components/NoteAddForm.vue";
 	import NotesList from "./components/NotesList.vue";
+	import NoteAddForm from "./components/NoteAddForm.vue";
 	import Note from "./components/Note.vue";
-	
 	export default {
-	components: {NoteAddForm, NotesList, Note},
-	data: function (){
-	return {
-	notes: [],
-	currentNote: null,
-	}
-	},
-	methods: {
-	addNote: function (note){
-	this.notes.push(note);
-	},
-	showNote: function (note){
-	this.currentNote = note;
-	},
-	deleteNote: function (note){
-	this.notes = this.notes.filter((n) => n != note);
-	if (note == this.currentNote){
-	this.currentNote = null;
-	}
-	},
-	showAddForm: function (){
-	this.currentNote = null;
-	}
-	},
+		components: {NotesList, NoteAddForm, Note},
+		data: function (){
+			return {
+				notes: [],
+				showAddForm: false,
+				currentNote: null,
+			}
+		},
+		methods: {
+			addNote: function (note){
+				var newNote = {
+					name: note.name,
+					content: note.content,
+				};
+				this.$http.post('notes', newNote).then((response) => {
+					this.notes.push(response.data);
+					this.showAddForm = false;
+					this.currentNote = response.data;
+				});
+			},
+			onAddForm: function (){
+				this.currentNote = null;
+				this.showAddForm = true;
+			},
+			deleteNote: function (note){
+				this.$http.delete(`notes/${note.id}`).then(() => {
+					this.showAddForm = false;
+					this.currentNote = null;
+					this.loadNotes();
+				});
+			},
+			loadNotes: function () {
+				this.$http.get('notes').then(response => {
+					this.notes = response.data;
+				});
+			},
+			showNote: function (note){
+				this.showAddForm = false;
+				this.currentNote = note;
+			}
+		},
+		mounted() {
+			this.$http.get('notes').then(response => {
+				this.notes = response.data;
+			});
+		}
 	}
 </script>
 
@@ -76,4 +98,4 @@
 	background-size: cover;
 	min-height: 150px;
 	}
-</style>
+</style>						
