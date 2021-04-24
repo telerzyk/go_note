@@ -3,7 +3,7 @@
 		<div class="row p-0 m-0 h-100">
 			<div class="col-12 col-md-5 col-lg-4 bg-light p-0 h-100">
 				<h3 class="w-100 text-center p-4">
-					<i class="bi bi-clipboard-check text-secondary"></i>
+					<i class="bi bi-file-plus text-secondary"></i>
 					GoNote
 				</h3>
 				<button type="button" class="btn btn-dark w-100 py-2 rounded-0" v-on:click="onAddForm()">
@@ -93,7 +93,7 @@
 
 <style>
 	.cover {
-	background-image: url("./assets/background.jpg");
+	background-image: url("./assets/background2.jpg");
 	background-position: center;
 	background-size: cover;
 	min-height: 150px;
